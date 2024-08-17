@@ -20,7 +20,80 @@ def computer_move(board, difficulty):
 
 @app.route('/')
 def index():
-    return render_template_string(open('templates/index.html').read())
+    html_code = '''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Крестики-нолики</title>
+        <style>
+            body { font-family: Arial, sans-serif; }
+            .board { display: grid; grid-template-columns: repeat(3, 100px); grid-gap: 5px; }
+            .cell { width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; font-size: 2em; border: 1px solid #000; cursor: pointer; }
+            #modal { display: none; position: fixed; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); align-items: center; justify-content: center; }
+            .modal-content { background: white; padding: 20px; border-radius: 10px; text-align: center; }
+            .button { padding: 10px 20px; cursor: pointer; }
+        </style>
+    </head>
+    <body>
+        <h1>Крестики-нолики</h1>
+        <div>
+            <button class="button" onclick="setDifficulty(1)">Легкий</button>
+            <button class="button" onclick="setDifficulty(3)">Средний</button>
+            <button class="button" onclick="setDifficulty(5)">Сложный</button>
+        </div>
+        <div class="board">
+            {% for i in range(9) %}
+            <div class="cell" id="{{ i }}" onclick="makeMove({{ i }})"></div>
+            {% endfor %}
+        </div>
+        <div id="modal">
+            <div class="modal-content">
+                <p id="resultText"></p>
+                <button class="button" onclick="resetGame()">Играть заново</button>
+            </div>
+        </div>
+        <script>
+            let difficulty = 1; // Default difficulty
+
+            function setDifficulty(level) {
+                difficulty = level;
+            }
+
+            function makeMove(cell) {
+                fetch('/move', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ move: cell, difficulty: difficulty })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    updateBoard(data.board);
+                    if (data.status === 'win' || data.status === 'lose' || data.status === 'draw') {
+                        document.getElementById('resultText').innerText = data.status === 'win' ? 'Вы выиграли!' : data.status === 'lose' ? 'Вы проиграли!' : 'Ничья!';
+                        document.getElementById('modal').style.display = 'flex';
+                    }
+                });
+            }
+
+            function updateBoard(board) {
+                for (let i = 0; i < board.length; i++) {
+                    document.getElementById(i.toString()).innerText = board[i];
+                }
+            }
+
+            function resetGame() {
+                fetch('/reset', { method: 'POST' })
+                .then(() => {
+                    updateBoard([' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']);
+                    document.getElementById('modal').style.display = 'none';
+                });
+            }
+        </script>
+    </body>
+    </html>
+    '''
+    return render_template_string(html_code)
 
 @app.route('/move', methods=['POST'])
 def move():
