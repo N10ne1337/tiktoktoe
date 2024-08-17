@@ -64,7 +64,7 @@ def index():
         <title>Крестики-нолики</title>
         <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
         <style>
-            body { font-family: Arial, sans-serif; }
+            body { font-family: Arial, sans-serif; background-color: #2c2c2c; color: white; }
             .board { display: grid; grid-template-columns: repeat(3, 150px); grid-gap: 10px; margin: 20px auto; }
             .cell { width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; font-size: 3em; border: 1px solid #000; cursor: pointer; }
             .button { padding: 10px 20px; cursor: pointer; margin-top: 20px; }
@@ -151,15 +151,26 @@ def index():
                     <div style="background: white; padding: 20px; border-radius: 10px; text-align: center;">
                         <p>${status === 'win' ? 'Вы выиграли!' : status === 'lose' ? 'Вы проиграли!' : 'Ничья!'}</p>
                         <button class="btn btn-secondary" onclick="location.reload()">Играть заново</button>
+                        <div id="difficulty-info-modal" class="mt-3"></div>
                     </div>
                 `;
                 document.body.appendChild(modal);
+                updateDifficultyInfoModal();
             }
 
             function updateDifficultyInfo() {
                 const difficultyNames = ["Самый легкий", "Легкий", "Средний", "Сложный", "Самый сложный"];
                 const difficultyColors = ["light", "success", "warning", "danger", "dark"];
                 document.getElementById('difficulty-info').innerHTML = `
+                    <p>Текущая сложность: <span class="text-${difficultyColors[difficulty - 1]}">${difficultyNames[difficulty - 1]}</span></p>
+                    <p>ИИ поумнел на ${improvement}%</p>
+                `;
+            }
+
+            function updateDifficultyInfoModal() {
+                const difficultyNames = ["Самый легкий", "Легкий", "Средний", "Сложный", "Самый сложный"];
+                const difficultyColors = ["light", "success", "warning", "danger", "dark"];
+                document.getElementById('difficulty-info-modal').innerHTML = `
                     <p>Текущая сложность: <span class="text-${difficultyColors[difficulty - 1]}">${difficultyNames[difficulty - 1]}</span></p>
                     <p>ИИ поумнел на ${improvement}%</p>
                 `;
@@ -192,15 +203,4 @@ def move():
     board[comp_move] = 'O'
     if check_win(board, 'O'):
         return jsonify({'status': 'lose', 'board': board})
-    if check_draw(board):
-        return jsonify({'status': 'draw', 'board': board})
-    return jsonify({'status': 'continue', 'board': board})
-
-@app.route('/reset', methods=['POST'])
-def reset():
-    global board
-    board = [' ' for _ in range(9)]
-    return jsonify({'status': 'reset', 'board': board})
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    if check_draw(board
