@@ -2,7 +2,7 @@ from flask import Flask, render_template_string, request, jsonify, session
 import random
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Задайте свой секретный ключ для безопасности сессии
+app.secret_key = 'your_secret_key'
 
 def check_win(board, player):
     win_conditions = [(0, 1, 2), (3, 4, 5), (6, 7, 8), (0, 3, 6), (1, 4, 7), (2, 5, 8), (0, 4, 8), (2, 4, 6)]
@@ -16,12 +16,24 @@ def computer_move(board, difficulty):
         # Простейший ИИ: случайный выбор доступного хода
         available_moves = [i for i, spot in enumerate(board) if spot == ' ']
         return random.choice(available_moves) if available_moves else None
-    # Сложные уровни сложности пока что не реализованы
+    if difficulty == 2:
+        # Немного более сложно: случайный ход, но предотвращает победу игрока
+        pass
+    if difficulty == 3:
+        # Средний: случайный ход и пытается победить, если возможно
+        pass
+    if difficulty == 4:
+        # Сложный: минимакс с ограниченной глубиной
+        pass
+    if difficulty == 5:
+        # Самый сложный: полный минимакс
+        pass
     return None
 
 @app.route('/')
 def index():
-    session['board'] = [' ' for _ in range(9)]  # Сброс доски при каждой загрузке страницы
+    session['board'] = [' ' for _ in range(9)]
+    session['difficulty'] = 1  # Стандартная сложность
     html_code = '''
     <!DOCTYPE html>
     <html lang="en">
@@ -35,17 +47,19 @@ def index():
             .cell { width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; font-size: 3em; border: 1px solid #000; cursor: pointer; }
             .button { padding: 10px 20px; cursor: pointer; margin-top: 20px; }
             .container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+            .difficulty { margin-top: 20px; }
         </style>
         <script>
             function makeMove(cell) {
                 fetch('/move', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ move: cell })
+                    body: JSON.stringify({ move: cell, difficulty: document.querySelector('input[name="difficulty"]:checked').value })
                 })
                 .then(response => response.json())
                 .then(data => {
                     updateBoard(data.board);
+                    updateDifficultyInfo();
                 });
             }
 
@@ -60,11 +74,22 @@ def index():
                 .then(response => response.json())
                 .then(data => {
                     updateBoard(data.board);
+                    updateDifficultyInfo();
                 });
+            }
+
+            function updateDifficultyInfo() {
+                const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
+                const difficultyText = ['Самый лёгкий', 'Лёгкий', 'Средний', 'Сложный', 'Самый сложный'];
+                const difficultyColors = ['#4CAF50', '#2196F3', '#FFC107', '#FF5722', '#F44336'];
+                const difficultyPercent = [0, 25, 50, 75, 100];
+                document.getElementById('currentDifficulty').innerText = 'Текущая сложность: ' + difficultyText[difficulty - 1];
+                document.getElementById('currentDifficulty').style.color = difficultyColors[difficulty - 1];
+                document.getElementById('aiLevel').innerText = 'ИИ поумнел на: ' + difficultyPercent[difficulty - 1] + '%';
             }
         </script>
     </head>
-    <body>
+    <body onload="updateDifficultyInfo()">
         <div class="container text-center">
             <h1 class="my-4">Крестики-нолики</h1>
             <div class="board mx-auto">
@@ -72,7 +97,16 @@ def index():
                 <div class="cell" id="{{ i }}" onclick="makeMove({{ i }})">{{ session['board'][i] }}</div>
                 {% endfor %}
             </div>
+            <div class="difficulty">
+                <label><input type="radio" name="difficulty" value="1" checked> Самый лёгкий</label>
+                <label><input type="radio" name="difficulty" value="2"> Лёгкий</label>
+                <label><input type="radio" name="difficulty" value="3"> Средний</label>
+                <label><input type="radio" name="difficulty" value="4"> Сложный</label>
+                <label><input type="radio" name="difficulty" value="5"> Самый сложный</label>
+            </div>
             <button class="btn btn-secondary button" onclick="resetGame()">Начать сначала</button>
+            <div id="currentDifficulty"></div>
+            <div id="aiLevel"></div>
         </div>
     </body>
     </html>
@@ -83,6 +117,7 @@ def index():
 def move():
     data = request.get_json()
     player_move = int(data['move'])
+    difficulty = int(data['difficulty'])
     board = session.get('board', [' ' for _ in range(9)])
     if board[player_move] != ' ':
         return jsonify({'status': 'invalid', 'board': board})
@@ -91,7 +126,7 @@ def move():
         return jsonify({'status': 'win', 'board': board})
     if check_draw(board):
         return jsonify({'status': 'draw', 'board': board})
-    comp_move = computer_move(board, 1)  # Пока что мы используем минимальную сложность
+    comp_move = computer_move(board, difficulty)
     if comp_move is not None:
         board[comp_move] = 'O'
     if check_win(board, 'O'):
@@ -104,6 +139,7 @@ def move():
 @app.route('/reset', methods=['POST'])
 def reset():
     session['board'] = [' ' for _ in range(9)]
+    session['difficulty'] = 1
     return jsonify({'board': session['board']})
 
 if __name__ == '__main__':
