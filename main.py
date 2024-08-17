@@ -88,98 +88,7 @@ def computer_move(board, difficulty):
 @app.route('/')
 def index():
     session['board'] = [' ' for _ in range(9)]
-    session['difficulty'] = 1  # Стандартная сложность
-    html_code = '''<!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Крестики-нолики</title>
-        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-        <style>
-            body { font-family: Arial, sans-serif; background-color: #2c2c2c; color: white; }
-            .board { display: grid; grid-template-columns: repeat(3, 100px); grid-gap: 10px; margin: 20px auto; }
-            .cell { width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; font-size: 2em; border: 1px solid #000; cursor: pointer; background: white; color: black; }
-            .button { padding: 10px 20px; cursor: pointer; margin-top: 20px; }
-            .container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-            .difficulty { margin-bottom: 20px; }
-        </style>
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const cells = document.querySelectorAll('.cell');
-                cells.forEach(cell => {
-                    cell.addEventListener('click', function() {
-                        if (this.textContent.trim() === '') {
-                            makeMove(this.id);
-                        }
-                    });
-                });
-            });
-
-            function makeMove(cell) {
-                const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
-                fetch('/move', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ move: cell, difficulty: difficulty })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    updateBoard(data.board);
-                    if (data.status !== 'continue') {
-                        showModal(data.status);
-                    }
-                });
-            }
-
-            function updateBoard(board) {
-                board.forEach((val, idx) => {
-                    document.getElementById(idx.toString()).textContent = val;
-                });
-            }
-
-            function resetGame() {
-                fetch('/reset', { method: 'POST' })
-                .then(response => response.json())
-                .then(data => {
-                    updateBoard(data.board);
-                });
-            }
-
-            function showModal(status) {
-                let message = '';
-                if (status === 'win') {
-                    message = 'Поздравляем, вы выиграли!';
-                } else if (status === 'lose') {
-                    message = 'Вы проиграли. Попробуйте снова!';
-                } else if (status === 'draw') {
-                    message = 'Ничья!';
-                }
-                if (confirm(message + ' Хотите начать заново?')) {
-                    resetGame();
-                }
-            }
-        </script>
-    </head>
-    <body>
-        <div class="container text-center">
-            <div class="difficulty">
-                <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                    <label class="btn btn-primary active"><input type="radio" name="difficulty" value="1" checked> Самый лёгкий</label>
-                    <label class="btn btn-info"><input type="radio" name="difficulty" value="2"> Лёгкий</label>
-                    <label class="btn btn-warning"><input type="radio" name="difficulty" value="3"> Средний</label>
-                    <label class="btn btn-danger"><input type="radio" name="difficulty" value="4"> Сложный</label>
-                    <label class="btn btn-dark"><input type="radio" name="difficulty" value="5"> Самый сложный</label>
-                </div>
-            </div>
-            <div class="board mx-auto">
-                {% for i in range(9) %}
-                <div class="cell" id="{{ i }}">{{ session['board'][i] }}</div>
-                {% endfor %}
-            </div>
-            <button class="btn btn-secondary button" onclick="resetGame()">Начать заново</button>
-        </div>
-    </body>
-    </html>'''
+    session['difficulty'] = 1  # default difficulty
     return render_template_string(html_code)
 
 @app.route('/move', methods=['POST'])
@@ -188,27 +97,144 @@ def move():
     player_move = int(data['move'])
     difficulty = int(data['difficulty'])
     board = session.get('board', [' ' for _ in range(9)])
-    if board[player_move] != ' ':
-        return jsonify({'status': 'invalid', 'board': board})
-    board[player_move] = 'X'
-    if check_win(board, 'X'):
-        return jsonify({'status': 'win', 'board': board})
-    if check_draw(board):
-        return jsonify({'status': 'draw', 'board': board})
-    comp_move = computer_move(board, difficulty)
-    if comp_move is not None:
-        board[comp_move] = 'O'
-    if check_win(board, 'O'):
-        return jsonify({'status': 'lose', 'board': board})
-    if check_draw(board):
-        return jsonify({'status': 'draw', 'board': board})
-    session['board'] = board
-    return jsonify({'status': 'continue', 'board': board})
+    if board[player_move] == ' ':
+        board[player_move] = 'X'
+        if check_win(board, 'X'):
+            session['board'] = board
+            return jsonify({'status': 'win', 'board': board})
+        if check_draw(board):
+            session['board'] = board
+            return jsonify({'status': 'draw', 'board': board})
+        comp_move = computer_move(board, difficulty)
+        if comp_move is not None:
+            board[comp_move] = 'O'
+            if check_win(board, 'O'):
+                session['board'] = board
+                return jsonify({'status': 'lose', 'board': board})
+            if check_draw(board):
+                session['board'] = board
+                return jsonify({'status': 'draw', 'board': board})
+        session['board'] = board
+        return jsonify({'status': 'continue', 'board': board})
+    return jsonify({'status': 'invalid', 'board': board})
 
 @app.route('/reset', methods=['POST'])
 def reset():
     session['board'] = [' ' for _ in range(9)]
     return jsonify({'board': session['board']})
+
+html_code = '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Крестики-нолики</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #2c2c2c; color: white; }
+        .board { display: grid; grid-template-columns: repeat(3, 100px); grid-gap: 10px; margin: 20px auto; }
+        .cell { width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; font-size: 2em; border: 1px solid #000; cursor: pointer; background: white; color: black; }
+        .button { padding: 10px 20px; cursor: pointer; margin-top: 20px; }
+        .container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        .difficulty { margin-bottom: 20px; }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                cell.addEventListener('click', function() {
+                    if (this.textContent.trim() === '') {
+                        makeMove(this.id);
+                    }
+                });
+            });
+        });
+
+        function makeMove(cell) {
+            const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
+            fetch('/move', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ move: cell, difficulty: difficulty })
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateBoard(data.board);
+                if (data.status !== 'continue') {
+                    showModal(data.status);
+                }
+            });
+        }
+
+        function updateBoard(board) {
+            board.forEach((val, idx) => {
+                document.getElementById(idx.toString()).textContent = val;
+            });
+        }
+
+        function resetGame() {
+            fetch('/reset', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                updateBoard(data.board);
+            });
+        }
+
+        function showModal(status) {
+            let message = '';
+            if (status === 'win') {
+                message = 'Поздравляем, вы выиграли!';
+            } else if (status === 'lose') {
+                message = 'Вы проиграли. Попробуйте снова!';
+            } else if (status === 'draw') {
+                message = 'Ничья!';
+            }
+            document.getElementById('resultMessage').textContent = message;
+            $('#resultModal').modal('show');
+        }
+    </script>
+</head>
+<body>
+    <div class="container text-center">
+        <div class="difficulty">
+            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                <label class="btn btn-primary active"><input type="radio" name="difficulty" value="1" checked> Самый лёгкий</label>
+                <label class="btn btn-info"><input type="radio" name="difficulty" value="2"> Лёгкий</label>
+                <label class="btn btn-warning"><input type="radio" name="difficulty" value="3"> Средний</label>
+                <label class="btn btn-danger"><input type="radio" name="difficulty" value="4"> Сложный</label>
+                <label class="btn btn-dark"><input type="radio" name="difficulty" value="5"> Самый сложный</label>
+            </div>
+        </div>
+        <div class="board mx-auto">
+            {% for i in range(9) %}
+            <div class="cell" id="{{ i }}">{{ session['board'][i] }}</div>
+            {% endfor %}
+        </div>
+        <button class="btn btn-secondary button" onclick="resetGame()">Начать заново</button>
+    </div>
+    <!-- Модальное окно для результата игры -->
+    <div class="modal fade" id="resultModal" tabindex="-1" role="dialog" aria-labelledby="resultModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resultModalLabel">Игра окончена</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Закрыть">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="resultMessage"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                    <button type="button" class="btn btn-primary" onclick="resetGame()">Начать заново</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+'''
 
 if __name__ == '__main__':
     app.run(debug=True)
