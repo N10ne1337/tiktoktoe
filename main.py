@@ -86,8 +86,9 @@ def index():
 
             function resetGame() {
                 fetch('/reset', { method: 'POST' })
-                .then(() => {
-                    updateBoard([' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']);
+                .then(response => response.json())
+                .then(data => {
+                    updateBoard(data.board);
                     document.getElementById('modal').style.display = 'none';
                 });
             }
