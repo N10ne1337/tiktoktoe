@@ -100,6 +100,10 @@ def index():
                     document.getElementById('modal').style.display = 'none';
                 });
             }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                document.getElementById('modal').style.display = 'none';
+            });
         </script>
     </body>
     </html>
