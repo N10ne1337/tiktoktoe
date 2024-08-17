@@ -13,7 +13,45 @@ def check_draw(board):
     return ' ' not in board
 
 def computer_move(board, difficulty):
-    return random.choice([i for i, x in enumerate(board) if x == ' '])
+    # Улучшенный ИИ с использованием алгоритма Minimax
+    def minimax(board, depth, is_maximizing):
+        if check_win(board, 'O'):
+            return 1
+        if check_win(board, 'X'):
+            return -1
+        if check_draw(board):
+            return 0
+
+        if is_maximizing:
+            best_score = -float('inf')
+            for i in range(9):
+                if board[i] == ' ':
+                    board[i] = 'O'
+                    score = minimax(board, depth + 1, False)
+                    board[i] = ' '
+                    best_score = max(score, best_score)
+            return best_score
+        else:
+            best_score = float('inf')
+            for i in range(9):
+                if board[i] == ' ':
+                    board[i] = 'X'
+                    score = minimax(board, depth + 1, True)
+                    board[i] = ' '
+                    best_score = min(score, best_score)
+            return best_score
+
+    best_move = None
+    best_score = -float('inf')
+    for i in range(9):
+        if board[i] == ' ':
+            board[i] = 'O'
+            score = minimax(board, 0, False)
+            board[i] = ' '
+            if score > best_score:
+                best_score = score
+                best_move = i
+    return best_move
 
 @app.route('/')
 def index():
@@ -29,9 +67,18 @@ def index():
             .board { display: grid; grid-template-columns: repeat(3, 150px); grid-gap: 10px; margin: 20px auto; }
             .cell { width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; font-size: 3em; border: 1px solid #000; cursor: pointer; }
             .button { padding: 10px 20px; cursor: pointer; margin-top: 20px; }
+            .container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
         </style>
+        <script>
+            function detectDevice() {
+                const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+                if (/android/i.test(userAgent) || /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                    document.body.style.zoom = "150%";
+                }
+            }
+        </script>
     </head>
-    <body>
+    <body onload="detectDevice()">
         <div class="container text-center">
             <h1 class="my-4">Крестики-нолики</h1>
             <div class="mb-4">
@@ -65,7 +112,7 @@ def index():
                 .then(data => {
                     updateBoard(data.board);
                     if (data.status === 'win' || data.status === 'lose' || data.status === 'draw') {
-                        alert(data.status === 'win' ? 'Вы выиграли!' : data.status === 'lose' ? 'Вы проиграли!' : 'Ничья!');
+                        showModal(data.status);
                     }
                 });
             }
@@ -82,6 +129,26 @@ def index():
                 .then(data => {
                     updateBoard(data.board);
                 });
+            }
+
+            function showModal(status) {
+                const modal = document.createElement('div');
+                modal.style.position = 'fixed';
+                modal.style.left = '0';
+                modal.style.top = '0';
+                modal.style.width = '100%';
+                modal.style.height = '100%';
+                modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                modal.style.display = 'flex';
+                modal.style.alignItems = 'center';
+                modal.style.justifyContent = 'center';
+                modal.innerHTML = `
+                    <div style="background: white; padding: 20px; border-radius: 10px; text-align: center;">
+                        <p>${status === 'win' ? 'Вы выиграли!' : status === 'lose' ? 'Вы проиграли!' : 'Ничья!'}</p>
+                        <button class="btn btn-secondary" onclick="location.reload()">Играть заново</button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
             }
 
             document.addEventListener('DOMContentLoaded', () => {
