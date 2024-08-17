@@ -4,6 +4,8 @@ import random
 app = Flask(__name__)
 
 board = [' ' for _ in range(9)]
+difficulty = 1
+improvement = 0
 
 def check_win(board, player):
     win_conditions = [(0, 1, 2), (3, 4, 5), (6, 7, 8), (0, 3, 6), (1, 4, 7), (2, 5, 8), (0, 4, 8), (2, 4, 6)]
@@ -13,7 +15,6 @@ def check_draw(board):
     return ' ' not in board
 
 def computer_move(board, difficulty):
-    # Улучшенный ИИ с использованием алгоритма Minimax
     def minimax(board, depth, is_maximizing):
         if check_win(board, 'O'):
             return 1
@@ -94,12 +95,16 @@ def index():
                 {% endfor %}
             </div>
             <button class="btn btn-secondary button" onclick="resetGame()">Начать сначала</button>
+            <div id="difficulty-info" class="mt-3"></div>
         </div>
         <script>
             let difficulty = 1; // Default difficulty
+            let improvement = 0;
 
             function setDifficulty(level) {
                 difficulty = level;
+                improvement = level * 20; // Example improvement calculation
+                updateDifficultyInfo();
             }
 
             function makeMove(cell) {
@@ -151,8 +156,18 @@ def index():
                 document.body.appendChild(modal);
             }
 
+            function updateDifficultyInfo() {
+                const difficultyNames = ["Самый легкий", "Легкий", "Средний", "Сложный", "Самый сложный"];
+                const difficultyColors = ["light", "success", "warning", "danger", "dark"];
+                document.getElementById('difficulty-info').innerHTML = `
+                    <p>Текущая сложность: <span class="text-${difficultyColors[difficulty - 1]}">${difficultyNames[difficulty - 1]}</span></p>
+                    <p>ИИ поумнел на ${improvement}%</p>
+                `;
+            }
+
             document.addEventListener('DOMContentLoaded', () => {
                 updateBoard([' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']);
+                updateDifficultyInfo();
             });
         </script>
     </body>
