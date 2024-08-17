@@ -26,9 +26,10 @@ def index():
     <head>
         <meta charset="UTF-8">
         <title>Крестики-нолики</title>
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
         <style>
             body { font-family: Arial, sans-serif; }
-            .board { display: grid; grid-template-columns: repeat(3, 100px); grid-gap: 5px; }
+            .board { display: grid; grid-template-columns: repeat(3, 100px); grid-gap: 5px; margin: 20px auto; }
             .cell { width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; font-size: 2em; border: 1px solid #000; cursor: pointer; }
             #modal { display: none; position: fixed; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); align-items: center; justify-content: center; }
             .modal-content { background: white; padding: 20px; border-radius: 10px; text-align: center; }
@@ -36,21 +37,23 @@ def index():
         </style>
     </head>
     <body>
-        <h1>Крестики-нолики</h1>
-        <div>
-            <button class="button" onclick="setDifficulty(1)">Легкий</button>
-            <button class="button" onclick="setDifficulty(3)">Средний</button>
-            <button class="button" onclick="setDifficulty(5)">Сложный</button>
-        </div>
-        <div class="board">
-            {% for i in range(9) %}
-            <div class="cell" id="{{ i }}" onclick="makeMove({{ i }})"></div>
-            {% endfor %}
-        </div>
-        <div id="modal">
-            <div class="modal-content">
-                <p id="resultText"></p>
-                <button class="button" onclick="resetGame()">Играть заново</button>
+        <div class="container">
+            <h1 class="text-center my-4">Крестики-нолики</h1>
+            <div class="text-center mb-4">
+                <button class="btn btn-primary" onclick="setDifficulty(1)">Легкий</button>
+                <button class="btn btn-warning" onclick="setDifficulty(3)">Средний</button>
+                <button class="btn btn-danger" onclick="setDifficulty(5)">Сложный</button>
+            </div>
+            <div class="board">
+                {% for i in range(9) %}
+                <div class="cell" id="{{ i }}" onclick="makeMove({{ i }})"></div>
+                {% endfor %}
+            </div>
+            <div id="modal" class="d-flex">
+                <div class="modal-content">
+                    <p id="resultText"></p>
+                    <button class="btn btn-secondary" onclick="resetGame()">Играть заново</button>
+                </div>
             </div>
         </div>
         <script>
