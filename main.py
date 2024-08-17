@@ -56,6 +56,8 @@ def computer_move(board, difficulty):
 
 @app.route('/')
 def index():
+    global board
+    board = [' ' for _ in range(9)]  # Reset board on page load
     html_code = '''
     <!DOCTYPE html>
     <html lang="en">
@@ -201,6 +203,4 @@ def move():
         return jsonify({'status': 'draw', 'board': board})
     comp_move = computer_move(board, difficulty)
     board[comp_move] = 'O'
-    if check_win(board, 'O'):
-        return jsonify({'status': 'lose', 'board': board})
-    if check_draw(board
+    if check
