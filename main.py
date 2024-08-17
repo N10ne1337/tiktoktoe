@@ -79,34 +79,23 @@ def index():
                     document.body.style.zoom = "150%";
                 }
             }
-        </script>
-    </head>
-    <body onload="detectDevice()">
-        <div class="container text-center">
-            <h1 class="my-4">Крестики-нолики</h1>
-            <div class="mb-4">
-                <button class="btn btn-light" onclick="setDifficulty(1)">Самый легкий</button>
-                <button class="btn btn-success" onclick="setDifficulty(2)">Легкий</button>
-                <button class="btn btn-warning" onclick="setDifficulty(3)">Средний</button>
-                <button class="btn btn-danger" onclick="setDifficulty(4)">Сложный</button>
-                <button class="btn btn-dark" onclick="setDifficulty(5)">Самый сложный</button>
-            </div>
-            <div class="board mx-auto">
-                {% for i in range(9) %}
-                <div class="cell" id="{{ i }}" onclick="makeMove({{ i }})">{{ board[i] }}</div>
-                {% endfor %}
-            </div>
-            <button class="btn btn-secondary button" onclick="resetGame()">Начать сначала</button>
-            <div id="difficulty-info" class="mt-3"></div>
-        </div>
-        <script>
-            let difficulty = 1; // Default difficulty
-            let improvement = 0;
 
-            function setDifficulty(level) {
-                difficulty = level;
-                improvement = level * 20; // Example improvement calculation
-                updateDifficultyInfo();
+            function updateDifficultyInfo() {
+                const difficultyNames = ["Самый легкий", "Легкий", "Средний", "Сложный", "Самый сложный"];
+                const difficultyColors = ["light", "success", "warning", "danger", "dark"];
+                document.getElementById('difficulty-info').innerHTML = `
+                    <p>Текущая сложность: <span class="text-${difficultyColors[difficulty - 1]}">${difficultyNames[difficulty - 1]}</span></p>
+                    <p>ИИ поумнел на ${improvement}%</p>
+                `;
+            }
+
+            function updateDifficultyInfoModal() {
+                const difficultyNames = ["Самый легкий", "Легкий", "Средний", "Сложный", "Самый сложный"];
+                const difficultyColors = ["light", "success", "warning", "danger", "dark"];
+                document.getElementById('difficulty-info-modal').innerHTML = `
+                    <p>Текущая сложность: <span class="text-${difficultyColors[difficulty - 1]}">${difficultyNames[difficulty - 1]}</span></p>
+                    <p>ИИ поумнел на ${improvement}%</p>
+                `;
             }
 
             function makeMove(cell) {
@@ -160,29 +149,30 @@ def index():
                 updateDifficultyInfoModal();
             }
 
-            function updateDifficultyInfo() {
-                const difficultyNames = ["Самый легкий", "Легкий", "Средний", "Сложный", "Самый сложный"];
-                const difficultyColors = ["light", "success", "warning", "danger", "dark"];
-                document.getElementById('difficulty-info').innerHTML = `
-                    <p>Текущая сложность: <span class="text-${difficultyColors[difficulty - 1]}">${difficultyNames[difficulty - 1]}</span></p>
-                    <p>ИИ поумнел на ${improvement}%</p>
-                `;
-            }
-
-            function updateDifficultyInfoModal() {
-                const difficultyNames = ["Самый легкий", "Легкий", "Средний", "Сложный", "Самый сложный"];
-                const difficultyColors = ["light", "success", "warning", "danger", "dark"];
-                document.getElementById('difficulty-info-modal').innerHTML = `
-                    <p>Текущая сложность: <span class="text-${difficultyColors[difficulty - 1]}">${difficultyNames[difficulty - 1]}</span></p>
-                    <p>ИИ поумнел на ${improvement}%</p>
-                `;
-            }
-
             document.addEventListener('DOMContentLoaded', () => {
                 updateBoard([' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']);
                 updateDifficultyInfo();
             });
         </script>
+    </head>
+    <body onload="detectDevice()">
+        <div class="container text-center">
+            <h1 class="my-4">Крестики-нолики</h1>
+            <div class="mb-4">
+                <button class="btn btn-light" onclick="setDifficulty(1)">Самый легкий</button>
+                <button class="btn btn-success" onclick="setDifficulty(2)">Легкий</button>
+                <button class="btn btn-warning" onclick="setDifficulty(3)">Средний</button>
+                <button class="btn btn-danger" onclick="setDifficulty(4)">Сложный</button>
+                <button class="btn btn-dark" onclick="setDifficulty(5)">Самый сложный</button>
+            </div>
+            <div class="board mx-auto">
+                {% for i in range(9) %}
+                <div class="cell" id="{{ i }}" onclick="makeMove({{ i }})">{{ board[i] }}</div>
+                {% endfor %}
+            </div>
+            <button class="btn btn-secondary button" onclick="resetGame()">Начать сначала</button>
+            <div id="difficulty-info" class="mt-3"></div>
+        </div>
     </body>
     </html>
     '''
@@ -203,4 +193,10 @@ def move():
         return jsonify({'status': 'draw', 'board': board})
     comp_move = computer_move(board, difficulty)
     board[comp_move] = 'O'
-    if check
+    if check_win(board, 'O'):
+        return jsonify({'status': 'lose', 'board': board})
+    if check_draw(board):
+        return jsonify({'status': 'draw', 'board': board})
+    return jsonify({'status': 'continue', 'board': board})
+
+@app.route('/reset', methods=['POST'])
