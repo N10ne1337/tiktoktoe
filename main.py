@@ -45,7 +45,7 @@ def index():
             </div>
             <div class="board mx-auto">
                 {% for i in range(9) %}
-                <div class="cell" id="{{ i }}" onclick="makeMove({{ i }})"></div>
+                <div class="cell" id="{{ i }}" onclick="makeMove({{ i }})">{{ board[i] }}</div>
                 {% endfor %}
             </div>
             <div id="modal" class="d-flex">
@@ -93,14 +93,13 @@ def index():
             }
 
             document.addEventListener('DOMContentLoaded', () => {
-                updateBoard([' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']);
                 document.getElementById('modal').style.display = 'none';
             });
         </script>
     </body>
     </html>
     '''
-    return render_template_string(html_code)
+    return render_template_string(html_code, board=board)
 
 @app.route('/move', methods=['POST'])
 def move():
@@ -127,7 +126,7 @@ def move():
 def reset():
     global board
     board = [' ' for _ in range(9)]
-    return jsonify({'status': 'reset'})
+    return jsonify({'status': 'reset', 'board': board})
 
 if __name__ == '__main__':
     app.run(debug=True)
