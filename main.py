@@ -13,16 +13,7 @@ def check_draw(board):
     return ' ' not in board
 
 def computer_move(board, difficulty):
-    if difficulty == 1:  # Самый легкий уровень
-        return random.choice([i for i, x in enumerate(board) if x == ' '])
-    elif difficulty == 2:  # Легкий уровень
-        return random.choice([i for i, x in enumerate(board) if x == ' '])
-    elif difficulty == 3:  # Средний уровень
-        return random.choice([i for i, x in enumerate(board) if x == ' '])
-    elif difficulty == 4:  # Сложный уровень
-        return random.choice([i for i, x in enumerate(board) if x == ' '])
-    elif difficulty == 5:  # Самый сложный уровень
-        return random.choice([i for i, x in enumerate(board) if x == ' '])
+    return random.choice([i for i, x in enumerate(board) if x == ' '])
 
 @app.route('/')
 def index():
@@ -102,6 +93,7 @@ def index():
             }
 
             document.addEventListener('DOMContentLoaded', () => {
+                updateBoard([' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']);
                 document.getElementById('modal').style.display = 'none';
             });
         </script>
