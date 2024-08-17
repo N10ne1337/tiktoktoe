@@ -13,10 +13,16 @@ def check_draw(board):
     return ' ' not in board
 
 def computer_move(board, difficulty):
-    if difficulty == 1:  # Простой ИИ: случайный выбор
+    if difficulty == 1:  # Самый легкий уровень
         return random.choice([i for i, x in enumerate(board) if x == ' '])
-    # Для уровней 2, 3, 4, 5 можно добавить улучшенные алгоритмы ИИ
-    return random.choice([i for i, x in enumerate(board) if x == ' '])
+    elif difficulty == 2:  # Легкий уровень
+        return random.choice([i for i, x in enumerate(board) if x == ' '])
+    elif difficulty == 3:  # Средний уровень
+        return random.choice([i for i, x in enumerate(board) if x == ' '])
+    elif difficulty == 4:  # Сложный уровень
+        return random.choice([i for i, x in enumerate(board) if x == ' '])
+    elif difficulty == 5:  # Самый сложный уровень
+        return random.choice([i for i, x in enumerate(board) if x == ' '])
 
 @app.route('/')
 def index():
@@ -29,22 +35,24 @@ def index():
         <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
         <style>
             body { font-family: Arial, sans-serif; }
-            .board { display: grid; grid-template-columns: repeat(3, 100px); grid-gap: 5px; margin: 20px auto; }
-            .cell { width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; font-size: 2em; border: 1px solid #000; cursor: pointer; }
+            .board { display: grid; grid-template-columns: repeat(3, 150px); grid-gap: 10px; margin: 20px auto; }
+            .cell { width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; font-size: 3em; border: 1px solid #000; cursor: pointer; }
             #modal { display: none; position: fixed; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); align-items: center; justify-content: center; }
             .modal-content { background: white; padding: 20px; border-radius: 10px; text-align: center; }
             .button { padding: 10px 20px; cursor: pointer; }
         </style>
     </head>
     <body>
-        <div class="container">
-            <h1 class="text-center my-4">Крестики-нолики</h1>
-            <div class="text-center mb-4">
-                <button class="btn btn-primary" onclick="setDifficulty(1)">Легкий</button>
+        <div class="container text-center">
+            <h1 class="my-4">Крестики-нолики</h1>
+            <div class="mb-4">
+                <button class="btn btn-light" onclick="setDifficulty(1)">Самый легкий</button>
+                <button class="btn btn-success" onclick="setDifficulty(2)">Легкий</button>
                 <button class="btn btn-warning" onclick="setDifficulty(3)">Средний</button>
-                <button class="btn btn-danger" onclick="setDifficulty(5)">Сложный</button>
+                <button class="btn btn-danger" onclick="setDifficulty(4)">Сложный</button>
+                <button class="btn btn-dark" onclick="setDifficulty(5)">Самый сложный</button>
             </div>
-            <div class="board">
+            <div class="board mx-auto">
                 {% for i in range(9) %}
                 <div class="cell" id="{{ i }}" onclick="makeMove({{ i }})"></div>
                 {% endfor %}
